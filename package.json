@@ -1,0 +1,21 @@
+{
+  "name": "midnight-zk-judge",
+  "version": "1.0.0",
+  "description": "Verifiable & Privacy-Preserving AI Decision System",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "midnight",
+    "zkp",
+    "zk-ml"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  }
+}

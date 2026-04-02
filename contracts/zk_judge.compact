@@ -1,0 +1,38 @@
+pragma language_version >= 0.14.0;
+
+// The public ledger state
+export ledger threshold: Uint<32>;
+export ledger total_evaluations: Uint<32>;
+export ledger successful_decisions: Uint<32>;
+
+// Initialize the AI decision threshold
+constructor(initial_threshold: Uint<32>) {
+  threshold = initial_threshold;
+  total_evaluations = 0;
+  successful_decisions = 0;
+}
+
+// evaluate_decision runs as a zk-SNARK prover on the user's local machine.
+// The user inputs their private attributes. They are never sent to the network.
+export circuit evaluate_decision(
+  private_attr1: Uint<32>, 
+  private_attr2: Uint<32>, 
+  private_attr3: Uint<32>
+): void {
+  // Hardcoded Model Weights (Could also be retrieved from ledger)
+  let weight1: Uint<32> = 10;
+  let weight2: Uint<32> = 5;
+  let weight3: Uint<32> = 2;
+
+  // AI Inference Logic: Simple Linear Scoring Model
+  let score: Uint<32> = (private_attr1 * weight1) 
+                      + (private_attr2 * weight2) 
+                      + (private_attr3 * weight3);
+
+  // Verifiable Logic: Score must pass the established public threshold
+  assert score >= threshold "ZK-AI validation failed: The private inputs do not meet the criteria.";
+
+  // Only update state if the proof is valid and verified on-chain
+  total_evaluations = total_evaluations + 1;
+  successful_decisions = successful_decisions + 1;
+}
