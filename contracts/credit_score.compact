@@ -1,0 +1,32 @@
+pragma language_version >= 0.14.0;
+
+// Kontratın blokzincir üzerinde tuttuğu public durum (state)
+export ledger threshold: Uint<32>;
+export ledger successful_applications: Uint<32>;
+
+// Kontrat ilk kurulduğunda threshold değerini ayarlar
+constructor(initial_threshold: Uint<32>) {
+  threshold = initial_threshold;
+  successful_applications = 0;
+}
+
+// evaluate_credit fonksiyonu "circuit" olarak tanımlanır ve kullanıcının cihazında "Zero-Knowledge Prover" olarak çalışır.
+// Parametreler ağa gönderilmez (gizli kalır).
+export circuit evaluate_credit(
+  creditHistoryFactor: Uint<32>, 
+  incomeFactor: Uint<32>, 
+  debtFactor: Uint<32>
+): void {
+  
+  // Basit bir hesaplama: Değerlerin toplamı (Gelişmiş senaryolarda ağırlıklar eklenebilir)
+  let total_score: Uint<32> = creditHistoryFactor + incomeFactor + debtFactor;
+
+  // Gizli hesaplanan sonucun, public 'threshold' değerinden büyük veya eşit olup olmadığını kontrol et.
+  // Eğer bu assert başarısız olursa, ZK Proof (kanıt) oluşturulamaz ve işlem durdurulur (geçemedi).
+  assert total_score >= threshold 
+    "Credit evaluation failed: Kredi skoru belirlenen esik degerini (threshold) gecemedi.";
+
+  // Eğer `assert` başarılı olursa kanıt oluşur ve kontrat durumu güncellenir.
+  // Bu durumun güncellenmiş olması, değerlendirmenin "geçtiğini" halka açık bir şekilde kanıtlar.
+  successful_applications = successful_applications + 1;
+}

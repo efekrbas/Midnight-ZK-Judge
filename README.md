@@ -4,7 +4,7 @@
 
 ## 🚀 Live Demo
 
-- 🌐 **Live App:** [Click here to try the Live Demo](#) *(Update this link)*
+- 🌐 **Live App:** [Click here to try the Live Demo](https://midnight-zk-judge.vercel.app/) *(Update this link)*
 - 🎥 **Video Demonstration:** [Watch the Demo Video](./demovideo.mp4)
 
 Midnight-ZK-Judge is an advanced architectural blueprint bridging **Confidential Computation** with **Artificial Intelligence**. It enables decentralized entities to evaluate highly sensitive user data (financial, medical, or proprietary records), render a deterministic AI-driven decision, and cryptographically verify the integrity of that decision on the **Midnight Network**—all without exposing a single byte of plain-text Personally Identifiable Information (PII) to the public ledger.
@@ -36,7 +36,6 @@ This system leverages a multi-phase execution strategy to preserve data obfuscat
 
 ## 🛠 Tech Stack
 
-- **Midnight SDK:** The native toolkit required for orchestrating dApp state and network routing.
-- **Compact & Zero-Knowledge Snarks (ZK-SNARKs):** The specialized cryptographic programming language orchestrating local Provers and verifying proofs on-chain.
-- **TypeScript:** The robust integration layer facilitating client-side wallet connectivity and data transformation execution.
+- **React + Vite + Tailwind CSS:** A modern, high-performance UI architecture to run ZK Proofs directly in-browser.
+- **Midnight SDK & Compact:** The specialized cryptographic programming language orchestrating local Provers and verifying proofs on-chain.
 - **Python / OpenAI:** The external inference engine architecture structured for advanced data-classification and model serialization.
