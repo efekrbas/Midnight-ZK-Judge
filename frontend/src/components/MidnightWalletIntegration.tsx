@@ -61,17 +61,29 @@ export default function MidnightWalletIntegration() {
 
   const connectWallet = async () => {
     setError(null);
-    const wallet = getWalletProvider();
-    
-    if (!wallet) {
-      setError("Midnight wallet extension not found. Is it enabled?");
-      return;
-    }
     try {
-      await wallet.enable();
+      const wallet = getWalletProvider();
+      
+      if (!wallet) {
+        const mdKeys = window.midnight ? Object.keys(window.midnight).join(', ') : 'none';
+        const cdKeys = (window as any).cardano ? Object.keys((window as any).cardano).join(', ') : 'none';
+        setError(`Not found! window.midnight keys: [${mdKeys}], window.cardano keys: [${cdKeys}]`);
+        return;
+      }
+
+      console.log("Found wallet provider:", wallet);
+      
+      // Prevent infinite hang by wrapping in a 5 second timeout
+      const api = await Promise.race([
+        wallet.enable(),
+        new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout! Lace eklentisi 5 saniye icinde cevap vermedi (Arka planda senkronizasyon sorunu yasiyor olabilir).")), 5000))
+      ]);
+      
+      console.log("Wallet enable returned:", api);
       setIsConnected(true);
     } catch (err: any) {
-      setError(err?.message || "Connection rejected.");
+      console.error("Wallet connection error:", err);
+      setError(`Error: ${err?.message || JSON.stringify(err) || String(err)}`);
     }
   };
 
@@ -82,9 +94,14 @@ export default function MidnightWalletIntegration() {
         {error && <p className="text-red-400 text-xs mt-1">{error}</p>}
       </div>
       {!isConnected ? (
-        <button onClick={connectWallet} className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm rounded-lg transition">
-          Connect
-        </button>
+        <div className="flex gap-2">
+          <button onClick={() => setIsConnected(true)} className="px-3 py-2 bg-[#1f1f2e] hover:bg-[#2a2a3e] text-gray-400 text-xs rounded-lg transition" title="Lace eklentiniz bozuksa simülasyon icin tetikleyin">
+            Dev Bypass
+          </button>
+          <button onClick={connectWallet} className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm rounded-lg transition">
+            Connect
+          </button>
+        </div>
       ) : (
         <div className="px-4 py-2 bg-teal-500/10 text-teal-400 border border-teal-500/30 text-sm rounded-lg font-medium">
            Connected
