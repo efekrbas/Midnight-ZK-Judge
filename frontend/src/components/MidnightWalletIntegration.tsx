@@ -109,7 +109,7 @@ export default function MidnightWalletIntegration({ onConnectChange }: { onConne
          }
       }
 
-      console.log("[DEBUG] Calling wallet.enable({ network: 'preprod' })....");
+      console.log("[DEBUG] Calling wallet.enable() without arguments....");
       // Ensure the connection logic uses an async/await pattern with a proper abort signal
       const controller = new AbortController();
       const timeoutId = setTimeout(() => {
@@ -117,7 +117,7 @@ export default function MidnightWalletIntegration({ onConnectChange }: { onConne
          controller.abort();
       }, 10000); // 10 seconds timeout
       
-      const enablePromise = wallet.enable({ network: 'preprod' }).catch(err => {
+      const enablePromise = wallet.enable().catch((err: any) => {
          console.error("[DEBUG] wallet.enable() threw an error:", err);
          throw err;
       });
