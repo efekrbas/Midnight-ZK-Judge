@@ -8,7 +8,7 @@ export default function Header() {
           <ShieldCheck size={28} />
         </div>
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-white">Midnight ZK Judge</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-white">Midnight <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-teal-400">ZK</span> Judge</h1>
           <p className="text-sm text-gray-400">Privacy-preserving AI verdict · ZK-ML Simulation</p>
         </div>
       </div>
