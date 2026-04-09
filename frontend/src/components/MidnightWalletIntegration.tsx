@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Loader2 } from 'lucide-react';
 
 declare global {
   interface Window {
@@ -11,6 +12,7 @@ declare global {
 
 export default function MidnightWalletIntegration({ onConnectChange }: { onConnectChange: (connected: boolean) => void }) {
   const [isConnected, setIsConnected] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
   // Propagate state upwards
@@ -66,29 +68,46 @@ export default function MidnightWalletIntegration({ onConnectChange }: { onConne
 
   const connectWallet = async () => {
     setError(null);
+    setIsLoading(true);
+    
     try {
       const wallet = getWalletProvider();
       
       if (!wallet) {
-        const mdKeys = window.midnight ? Object.keys(window.midnight).join(', ') : 'none';
-        const cdKeys = (window as any).cardano ? Object.keys((window as any).cardano).join(', ') : 'none';
-        setError(`Not found! window.midnight keys: [${mdKeys}], window.cardano keys: [${cdKeys}]`);
-        return;
+        throw new Error("Midnight wallet extension not found! Please install or unlock Lace/Midnight wallet.");
       }
 
       console.log("Found wallet provider:", wallet);
       
-      // Prevent infinite hang by wrapping in a 5 second timeout
-      const api = await Promise.race([
-        wallet.enable(),
-        new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout! Lace eklentisi 5 saniye icinde cevap vermedi (Arka planda senkronizasyon sorunu yasiyor olabilir).")), 5000))
-      ]);
+      // Robust check before enable to see if it's already enabled
+      if (typeof wallet.isEnabled === 'function') {
+         const enabled = await wallet.isEnabled();
+         if (enabled) {
+            console.log("Wallet already enabled.");
+            setIsConnected(true);
+            return;
+         }
+      }
+
+      // Ensure the connection logic uses an async/await pattern with a proper abort signal
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 seconds timeout
+      
+      const enablePromise = wallet.enable();
+      const timeoutPromise = new Promise((_, reject) => {
+        controller.signal.addEventListener('abort', () => reject(new Error("Connection timed out. Please check if the wallet pop-up was hidden or needs unlocking.")));
+      });
+
+      const api = await Promise.race([enablePromise, timeoutPromise]);
+      clearTimeout(timeoutId);
       
       console.log("Wallet enable returned:", api);
       setIsConnected(true);
     } catch (err: any) {
       console.error("Wallet connection error:", err);
       setError(`Error: ${err?.message || JSON.stringify(err) || String(err)}`);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -96,17 +115,25 @@ export default function MidnightWalletIntegration({ onConnectChange }: { onConne
     <div className="flex items-center justify-between">
       <div>
         <h3 className="text-white font-medium">Lace Midnight Wallet</h3>
-        {error && <p className="text-red-400 text-xs mt-1">{error}</p>}
+        {error && <p className="text-red-400 text-xs mt-1 max-w-[280px]">{error}</p>}
       </div>
       {!isConnected ? (
-        <div className="flex gap-2">
-          <button onClick={() => setIsConnected(true)} className="px-3 py-2 bg-[#1f1f2e] hover:bg-[#2a2a3e] text-gray-400 text-xs rounded-lg transition" title="Lace eklentiniz bozuksa simülasyon icin tetikleyin">
-            Dev Bypass
-          </button>
-          <button onClick={connectWallet} className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm rounded-lg transition">
-            Connect
-          </button>
-        </div>
+        <button 
+          onClick={connectWallet} 
+          disabled={isLoading}
+          className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:bg-blue-800 disabled:cursor-not-allowed text-white text-sm rounded-lg transition"
+        >
+          {isLoading ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Connecting...
+            </>
+          ) : error ? (
+            "Retry Connection"
+          ) : (
+            "Connect Wallet"
+          )}
+        </button>
       ) : (
         <div className="px-4 py-2 bg-teal-500/10 text-teal-400 border border-teal-500/30 text-sm rounded-lg font-medium">
            Connected
