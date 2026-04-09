@@ -22,11 +22,21 @@ export default function MidnightWalletIntegration({ onConnectChange }: { onConne
 
   // Helper to dynamically find the injected wallet
   const getWalletProvider = (): any => {
+    console.log("[DEBUG] Searching for wallet provider...");
+    console.log("[DEBUG] window.midnight exists?", !!window.midnight);
+    console.log("[DEBUG] window.cardano exists?", !!(window as any).cardano);
+    
     const pOptions = [];
     
     // 1. Midnight Specific
     if (window.midnight) {
-      if (typeof (window.midnight as any).enable === 'function') pOptions.push(window.midnight);
+      if (typeof (window.midnight as any).enable === 'function') {
+        console.log("[DEBUG] Found direct window.midnight.enable");
+        pOptions.push(window.midnight);
+      }
+      if (window.midnight.mnLace) console.log("[DEBUG] Found window.midnight.mnLace");
+      if (window.midnight.lace) console.log("[DEBUG] Found window.midnight.lace");
+      
       pOptions.push(window.midnight.mnLace, window.midnight.lace);
       for (const key of Object.keys(window.midnight)) pOptions.push((window.midnight as any)[key]);
     }
@@ -34,17 +44,26 @@ export default function MidnightWalletIntegration({ onConnectChange }: { onConne
     // 2. Cardano Standard (Lace)
     if ((window as any).cardano) {
       const cardano = (window as any).cardano;
+      if (cardano.lace) console.log("[DEBUG] Found cardano.lace");
+      if (cardano.mnLace) console.log("[DEBUG] Found cardano.mnLace");
       pOptions.push(cardano.lace, cardano.mnLace);
     }
     
     // 3. Native root inject
-    if ((window as any).lace) pOptions.push((window as any).lace);
+    if ((window as any).lace) {
+       console.log("[DEBUG] Found window.lace");
+       pOptions.push((window as any).lace);
+    }
 
     // Find the first option that has a valid .enable() method
     for (const p of pOptions) {
-      if (p && typeof p.enable === 'function') return p;
+      if (p && typeof p.enable === 'function') {
+         console.log("[DEBUG] Selected provider:", p);
+         return p;
+      }
     }
     
+    console.log("[DEBUG] No valid provider with .enable() found!");
     return null;
   };
 
@@ -67,6 +86,7 @@ export default function MidnightWalletIntegration({ onConnectChange }: { onConne
   }, []);
 
   const connectWallet = async () => {
+    console.log("[DEBUG] === connectWallet flow initiated ===");
     setError(null);
     setIsLoading(true);
     
@@ -76,24 +96,32 @@ export default function MidnightWalletIntegration({ onConnectChange }: { onConne
       if (!wallet) {
         throw new Error("Midnight wallet extension not found! Please install or unlock Lace/Midnight wallet.");
       }
-
-      console.log("Found wallet provider:", wallet);
       
       // Robust check before enable to see if it's already enabled
       if (typeof wallet.isEnabled === 'function') {
+         console.log("[DEBUG] Checking wallet.isEnabled()...");
          const enabled = await wallet.isEnabled();
+         console.log("[DEBUG] wallet.isEnabled() returned:", enabled);
          if (enabled) {
-            console.log("Wallet already enabled.");
+            console.log("[DEBUG] Wallet is already enabled. Connecting...");
             setIsConnected(true);
             return;
          }
       }
 
+      console.log("[DEBUG] Calling wallet.enable({ network: 'preprod' })....");
       // Ensure the connection logic uses an async/await pattern with a proper abort signal
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 seconds timeout
+      const timeoutId = setTimeout(() => {
+         console.error("[DEBUG] 10s Time out reached! Aborting connection...");
+         controller.abort();
+      }, 10000); // 10 seconds timeout
       
-      const enablePromise = wallet.enable({ network: 'preprod' });
+      const enablePromise = wallet.enable({ network: 'preprod' }).catch(err => {
+         console.error("[DEBUG] wallet.enable() threw an error:", err);
+         throw err;
+      });
+      
       const timeoutPromise = new Promise((_, reject) => {
         controller.signal.addEventListener('abort', () => reject(new Error("Connection timed out. Please check if the wallet pop-up was hidden or needs unlocking.")));
       });
@@ -101,21 +129,29 @@ export default function MidnightWalletIntegration({ onConnectChange }: { onConne
       const api: any = await Promise.race([enablePromise, timeoutPromise]);
       clearTimeout(timeoutId);
       
+      console.log("[DEBUG] Enable succeeded! API Object:", api);
+      
       // Validation: Enforce Preprod network
       if (api && typeof api.getNetworkId === 'function') {
+         console.log("[DEBUG] Validating network ID...");
          const rawNetId = await api.getNetworkId();
+         console.log("[DEBUG] API returned network ID:", rawNetId);
+         
          const netStr = String(rawNetId).toLowerCase();
          // Note: Cardano based Preprod usually returns 0. Midnight might return 'preprod'.
          if (rawNetId !== 0 && netStr !== 'preprod' && netStr !== 'midnight-preprod') {
-            console.error('Network mismatch: Please switch to Preprod');
-            throw new Error('Network mismatch: Please switch to Preprod');
+            console.error('[DEBUG] Validation failed: Network mismatch:', rawNetId);
+            throw new Error(`Network mismatch: Received '${rawNetId}'. Please switch to Preprod`);
          }
+      } else {
+         console.log("[DEBUG] api.getNetworkId is not available on this provider.");
       }
       
-      console.log("Wallet enable returned:", api);
       setIsConnected(true);
+      console.log("[DEBUG] === connectWallet flow SUCCESS ===");
     } catch (err: any) {
-      console.error("Wallet connection error:", err);
+      console.error("[DEBUG] === connectWallet flow FAILED ===");
+      console.error(err);
       setError(`Error: ${err?.message || JSON.stringify(err) || String(err)}`);
     } finally {
       setIsLoading(false);
