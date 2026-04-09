@@ -20,6 +20,7 @@ export default function App() {
 
   const [status, setStatus] = useState<'idle'|'pending'|'verified'|'rejected'>('idle');
   const [isSimulating, setIsSimulating] = useState(false);
+  const [isWalletConnected, setIsWalletConnected] = useState(false);
   const [currentStep, setCurrentStep] = useState(0); 
   const [proofData, setProofData] = useState<{commitment: string, nullifier: string}|null>(null);
   const [verdict, setVerdict] = useState<{score: number, approved: boolean, blockNum: string}|null>(null);
@@ -81,7 +82,7 @@ export default function App() {
           {/* Left Panel */}
           <div className="space-y-6">
              <div className="bg-[#050508] border border-[#232332] rounded-xl p-6 shadow-lg">
-                <MidnightWalletIntegration />
+                <MidnightWalletIntegration onConnectChange={setIsWalletConnected} />
              </div>
 
             <InputPanel 
@@ -117,11 +118,12 @@ export default function App() {
 
             <div className="flex flex-wrap gap-4 pt-4">
               <button 
-                onClick={runProofFlow} disabled={isSimulating}
-                className="flex items-center gap-2 px-6 py-3 bg-purple-600 hover:bg-purple-500 text-white rounded-lg font-medium transition disabled:opacity-50"
+                onClick={runProofFlow} disabled={isSimulating || !isWalletConnected}
+                className="flex items-center gap-2 px-6 py-3 bg-purple-600 hover:bg-purple-500 text-white rounded-lg font-medium transition disabled:opacity-50 disabled:cursor-not-allowed"
+                title={!isWalletConnected ? "Lütfen önce Wallet'ı bağlayın" : ""}
               >
                 {isSimulating ? <Zap size={18} className="animate-pulse" /> : <Zap size={18} />} 
-                {isSimulating ? "Proving..." : "Generate Proof"}
+                {isSimulating ? "Proving..." : !isWalletConnected ? "Connect Wallet to Prove" : "Generate Proof"}
               </button>
               <button onClick={resetAll} disabled={isSimulating} className="flex items-center gap-2 px-6 py-3 bg-[#1f1f2e] hover:bg-[#2a2a3e] text-white rounded-lg transition disabled:opacity-50">
                 <X size={18} /> Reset

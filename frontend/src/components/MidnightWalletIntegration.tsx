@@ -9,9 +9,14 @@ declare global {
   }
 }
 
-export default function MidnightWalletIntegration() {
+export default function MidnightWalletIntegration({ onConnectChange }: { onConnectChange: (connected: boolean) => void }) {
   const [isConnected, setIsConnected] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Propagate state upwards
+  useEffect(() => {
+    onConnectChange(isConnected);
+  }, [isConnected, onConnectChange]);
 
   // Helper to dynamically find the injected wallet
   const getWalletProvider = (): any => {
