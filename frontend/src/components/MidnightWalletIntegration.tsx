@@ -4,7 +4,7 @@ import { Loader2 } from 'lucide-react';
 declare global {
   interface Window {
     midnight?: Record<string, {
-      enable: () => Promise<any>;
+      enable: (opts?: any) => Promise<any>;
       isEnabled: () => Promise<boolean>;
     }>
   }
@@ -93,13 +93,24 @@ export default function MidnightWalletIntegration({ onConnectChange }: { onConne
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 seconds timeout
       
-      const enablePromise = wallet.enable();
+      const enablePromise = wallet.enable({ network: 'preprod' });
       const timeoutPromise = new Promise((_, reject) => {
         controller.signal.addEventListener('abort', () => reject(new Error("Connection timed out. Please check if the wallet pop-up was hidden or needs unlocking.")));
       });
 
-      const api = await Promise.race([enablePromise, timeoutPromise]);
+      const api: any = await Promise.race([enablePromise, timeoutPromise]);
       clearTimeout(timeoutId);
+      
+      // Validation: Enforce Preprod network
+      if (api && typeof api.getNetworkId === 'function') {
+         const rawNetId = await api.getNetworkId();
+         const netStr = String(rawNetId).toLowerCase();
+         // Note: Cardano based Preprod usually returns 0. Midnight might return 'preprod'.
+         if (rawNetId !== 0 && netStr !== 'preprod' && netStr !== 'midnight-preprod') {
+            console.error('Network mismatch: Please switch to Preprod');
+            throw new Error('Network mismatch: Please switch to Preprod');
+         }
+      }
       
       console.log("Wallet enable returned:", api);
       setIsConnected(true);

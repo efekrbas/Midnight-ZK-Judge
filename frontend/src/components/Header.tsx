@@ -15,7 +15,7 @@ export default function Header() {
       <div className="flex items-center gap-4">
          <div className="flex items-center gap-2 px-4 py-2 bg-[#13131c] rounded-full border border-[#1f1f2e] text-sm">
             <span className="w-2.5 h-2.5 rounded-full bg-teal-400 animate-pulse"></span>
-            <span className="text-gray-400">network · <span className="text-white">midnight-devnet</span></span>
+            <span className="text-gray-400">network · <span className="text-white">midnight-preprod</span></span>
          </div>
       </div>
     </header>
