@@ -4,8 +4,13 @@
 
 ## 🚀 Live Demo
 
-- 🌐 **Live App:** [Click here to try the Live Demo](https://midnight-zk-judge.vercel.app/) *(Update this link)*
-- 🎥 **Video Demonstration:** [Watch the Demo Video](./demovideo.mp4)
+- 🌐 **Live App:** [Click here to try the Live Demo](https://midnight-zk-judge.vercel.app/)
+
+## Demo Video
+
+https://github.com/user-attachments/assets/1e809760-7bfc-4f63-ad39-f441f12387e7
+
+
 
 Midnight-ZK-Judge is an advanced architectural blueprint bridging **Confidential Computation** with **Artificial Intelligence**. It enables decentralized entities to evaluate highly sensitive user data (financial, medical, or proprietary records), render a deterministic AI-driven decision, and cryptographically verify the integrity of that decision on the **Midnight Network**—all without exposing a single byte of plain-text Personally Identifiable Information (PII) to the public ledger.
 
