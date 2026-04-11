@@ -37,7 +37,9 @@ export default function ZKProofConsole({ currentStep, isSimulating }: { currentS
   const endOfLogsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    endOfLogsRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (logs.length > 1) {
+      endOfLogsRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
   }, [logs]);
 
   useEffect(() => {

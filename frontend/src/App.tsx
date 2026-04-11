@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { Zap, X, Hash } from 'lucide-react';
+import { useMidnight } from './hooks/useMidnight';
 import Header from './components/Header';
 import InputPanel from './components/InputPanel';
 import ZKProofConsole from './components/ZKProofConsole';
 import VerdictCard from './components/VerdictCard';
 import NetworkPanel from './components/NetworkPanel';
 import HistoryPanel from './components/HistoryPanel';
-import MidnightWalletIntegration from './components/MidnightWalletIntegration';
+import WalletSelector from './components/WalletSelector';
 
 function randomHex(len = 8) {
   return Array.from({ length: len }, () => Math.floor(Math.random() * 16).toString(16)).join('');
@@ -20,7 +21,7 @@ export default function App() {
 
   const [status, setStatus] = useState<'idle'|'pending'|'verified'|'rejected'>('idle');
   const [isSimulating, setIsSimulating] = useState(false);
-  const [isWalletConnected, setIsWalletConnected] = useState(false);
+  const { isConnected: isWalletConnected } = useMidnight();
   const [currentStep, setCurrentStep] = useState(0); 
   const [proofData, setProofData] = useState<{commitment: string, nullifier: string}|null>(null);
   const [verdict, setVerdict] = useState<{score: number, approved: boolean, blockNum: string}|null>(null);
@@ -82,7 +83,7 @@ export default function App() {
           {/* Left Panel */}
           <div className="space-y-6">
              <div className="bg-[#050508] border border-[#232332] rounded-xl p-6 shadow-lg">
-                <MidnightWalletIntegration onConnectChange={setIsWalletConnected} />
+                <WalletSelector />
              </div>
 
             <InputPanel 
