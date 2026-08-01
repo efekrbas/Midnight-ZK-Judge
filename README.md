@@ -1,5 +1,7 @@
 # Midnight-ZK-Judge ⚖️🛡️
 
+This project is built on the Midnight Network.
+
 **Verifiable & Privacy-Preserving AI Decision System**
 
 ## 🚀 Live Demo
